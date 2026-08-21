@@ -2,8 +2,7 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import Sidebar from './components/Sidebar';
-import Login from './pages/Login';
-import Register from './pages/Register';
+import Onboarding from './pages/Onboarding';
 import Dashboard from './pages/Dashboard';
 import Activities from './pages/Activities';
 import TrainingPlan from './pages/TrainingPlan';
@@ -11,7 +10,7 @@ import Profile from './pages/Profile';
 
 function PrivateLayout({ children }) {
   const { user } = useSelector((s) => s.auth);
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/welcome" replace />;
   return (
     <div className="app-shell">
       <Sidebar />
@@ -21,10 +20,11 @@ function PrivateLayout({ children }) {
 }
 
 export default function App() {
+  const { user } = useSelector((s) => s.auth);
+
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
+      <Route path="/welcome" element={user ? <Navigate to="/" replace /> : <Onboarding />} />
       <Route path="/" element={<PrivateLayout><Dashboard /></PrivateLayout>} />
       <Route path="/activities" element={<PrivateLayout><Activities /></PrivateLayout>} />
       <Route path="/plan" element={<PrivateLayout><TrainingPlan /></PrivateLayout>} />

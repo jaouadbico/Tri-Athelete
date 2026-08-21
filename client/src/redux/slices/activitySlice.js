@@ -1,32 +1,48 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../services/api';
+import { createSlice } from '@reduxjs/toolkit';
+import storage from '../../services/storage';
 
-export const fetchActivities = createAsyncThunk('activities/fetch', async (sport) => {
-  const { data } = await api.get('/activities', { params: sport ? { sport } : {} });
-  return data;
-});
+function computeSummary(activities, days) {
+  const since = Date.now() - days * 24 * 60 * 60 * 1000;
+  const bySport = {};
+  activities
+    .filter((a) => new Date(a.startDate).getTime() >= since)
+    .forEach((a) => {
+      if (!bySport[a.sport]) bySport[a.sport] = { _id: a.sport, totalDistanceMeters: 0, totalTimeSeconds: 0, sessionCount: 0 };
+      bySport[a.sport].totalDistanceMeters += Number(a.distanceMeters) || 0;
+      bySport[a.sport].totalTimeSeconds += Number(a.movingTimeSeconds) || 0;
+      bySport[a.sport].sessionCount += 1;
+    });
+  return { periodDays: days, summary: Object.values(bySport) };
+}
 
-export const fetchSummary = createAsyncThunk('activities/summary', async (days = 7) => {
-  const { data } = await api.get('/activities/summary', { params: { days } });
-  return data;
-});
-
-export const addActivity = createAsyncThunk('activities/add', async (payload) => {
-  const { data } = await api.post('/activities', payload);
-  return data;
-});
+const initialActivities = storage.getActivities();
 
 const activitySlice = createSlice({
   name: 'activities',
-  initialState: { list: [], summary: null, status: 'idle' },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchActivities.pending, (state) => { state.status = 'loading'; })
-      .addCase(fetchActivities.fulfilled, (state, action) => { state.status = 'succeeded'; state.list = action.payload; })
-      .addCase(fetchSummary.fulfilled, (state, action) => { state.summary = action.payload; })
-      .addCase(addActivity.fulfilled, (state, action) => { state.list.unshift(action.payload); });
+  initialState: {
+    list: initialActivities,
+    summary: computeSummary(initialActivities, 7),
+  },
+  reducers: {
+    loadActivities: (state) => {
+      state.list = storage.getActivities();
+      state.summary = computeSummary(state.list, 7);
+    },
+    addActivity: (state, action) => {
+      storage.addActivity(action.payload);
+      state.list = storage.getActivities();
+      state.summary = computeSummary(state.list, 7);
+      return state;
+    },
+    removeActivity: (state, action) => {
+      state.list = storage.deleteActivity(action.payload);
+      state.summary = computeSummary(state.list, 7);
+    },
+    refreshSummary: (state, action) => {
+      state.summary = computeSummary(state.list, action.payload || 7);
+    },
   },
 });
 
+export const { loadActivities, addActivity, removeActivity, refreshSummary } = activitySlice.actions;
 export default activitySlice.reducer;

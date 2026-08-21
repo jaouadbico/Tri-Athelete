@@ -1,15 +1,15 @@
 import React from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { logout } from '../redux/slices/authSlice';
+import { resetProfile } from '../redux/slices/authSlice';
 
 export default function Sidebar() {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate('/login');
+  const handleReset = () => {
+    if (window.confirm('This clears all locally stored data on this device. Continue?')) {
+      dispatch(resetProfile());
+    }
   };
 
   return (
@@ -21,7 +21,9 @@ export default function Sidebar() {
         <NavLink to="/plan" className={({ isActive }) => (isActive ? 'active' : '')}>Training Plan</NavLink>
         <NavLink to="/profile" className={({ isActive }) => (isActive ? 'active' : '')}>Profile</NavLink>
       </nav>
-      <button onClick={handleLogout} style={{ marginTop: 24, width: '100%' }}>Log out</button>
+      <button onClick={handleReset} style={{ marginTop: 24, width: '100%', background: '#2a2e38' }}>
+        Reset local data
+      </button>
     </aside>
   );
 }

@@ -1,51 +1,36 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../../services/api';
+import { createSlice } from '@reduxjs/toolkit';
+import storage from '../../services/storage';
 
-const storedUser = JSON.parse(localStorage.getItem('user'));
-
-export const login = createAsyncThunk('auth/login', async (payload, thunkAPI) => {
-  try {
-    const { data } = await api.post('/auth/login', payload);
-    localStorage.setItem('user', JSON.stringify(data));
-    return data;
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || 'Login failed');
-  }
-});
-
-export const register = createAsyncThunk('auth/register', async (payload, thunkAPI) => {
-  try {
-    const { data } = await api.post('/auth/register', payload);
-    localStorage.setItem('user', JSON.stringify(data));
-    return data;
-  } catch (err) {
-    return thunkAPI.rejectWithValue(err.response?.data?.message || 'Registration failed');
-  }
-});
+const initialProfile = storage.getProfile();
 
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: storedUser || null,
-    status: 'idle',
-    error: null,
+    user: initialProfile,
   },
   reducers: {
-    logout: (state) => {
-      localStorage.removeItem('user');
+    setupProfile: (state, action) => {
+      const profile = storage.saveProfile({
+        _id: storage.uid(),
+        name: action.payload.name,
+        raceGoal: action.payload.raceGoal || '70.3',
+        ftp: action.payload.ftp || null,
+        thresholdPace: action.payload.thresholdPace || '',
+      });
+      state.user = profile;
+    },
+    updateProfile: (state, action) => {
+      const profile = storage.saveProfile({ ...state.user, ...action.payload });
+      state.user = profile;
+    },
+    resetProfile: (state) => {
+      storage.clearProfile();
+      localStorage.removeItem(storage.KEYS.ACTIVITIES);
+      localStorage.removeItem(storage.KEYS.PLANS);
       state.user = null;
     },
   },
-  extraReducers: (builder) => {
-    builder
-      .addCase(login.pending, (state) => { state.status = 'loading'; state.error = null; })
-      .addCase(login.fulfilled, (state, action) => { state.status = 'succeeded'; state.user = action.payload; })
-      .addCase(login.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; })
-      .addCase(register.pending, (state) => { state.status = 'loading'; state.error = null; })
-      .addCase(register.fulfilled, (state, action) => { state.status = 'succeeded'; state.user = action.payload; })
-      .addCase(register.rejected, (state, action) => { state.status = 'failed'; state.error = action.payload; });
-  },
 });
 
-export const { logout } = authSlice.actions;
+export const { setupProfile, updateProfile, resetProfile } = authSlice.actions;
 export default authSlice.reducer;

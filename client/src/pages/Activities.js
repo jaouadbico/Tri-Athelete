@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchActivities, addActivity } from '../redux/slices/activitySlice';
+import { loadActivities, addActivity, removeActivity } from '../redux/slices/activitySlice';
 
 const emptyForm = {
   sport: 'run',
@@ -18,14 +18,14 @@ export default function Activities() {
   const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchActivities());
+    dispatch(loadActivities());
   }, [dispatch]);
 
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    await dispatch(addActivity({
+    dispatch(addActivity({
       ...form,
       distanceMeters: Number(form.distanceMeters) || 0,
       movingTimeSeconds: Number(form.movingTimeSeconds) || 0,
@@ -64,7 +64,7 @@ export default function Activities() {
       <div className="card">
         <table>
           <thead>
-            <tr><th>Sport</th><th>Name</th><th>Date</th><th>Distance</th><th>Time</th></tr>
+            <tr><th>Sport</th><th>Name</th><th>Date</th><th>Distance</th><th>Time</th><th></th></tr>
           </thead>
           <tbody>
             {list.map((a) => (
@@ -74,10 +74,13 @@ export default function Activities() {
                 <td>{new Date(a.startDate).toLocaleDateString()}</td>
                 <td>{a.sport === 'swim' ? `${a.distanceMeters} m` : `${(a.distanceMeters / 1000).toFixed(1)} km`}</td>
                 <td>{Math.round(a.movingTimeSeconds / 60)} min</td>
+                <td>
+                  <button onClick={() => dispatch(removeActivity(a._id))} style={{ background: 'transparent', color: '#8b8f9a', padding: 4 }}>✕</button>
+                </td>
               </tr>
             ))}
             {list.length === 0 && (
-              <tr><td colSpan={5} style={{ color: '#8b8f9a' }}>No activities yet.</td></tr>
+              <tr><td colSpan={6} style={{ color: '#8b8f9a' }}>No activities yet.</td></tr>
             )}
           </tbody>
         </table>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPlans, generatePlan, toggleWorkout } from '../redux/slices/planSlice';
+import { loadPlans, generatePlan, toggleWorkout } from '../redux/slices/planSlice';
 
 export default function TrainingPlan() {
   const dispatch = useDispatch();
@@ -10,21 +10,22 @@ export default function TrainingPlan() {
   const [weeks, setWeeks] = useState(12);
 
   useEffect(() => {
-    dispatch(fetchPlans());
+    dispatch(loadPlans());
   }, [dispatch]);
 
   const activePlan = list.find((p) => p.active) || list[0];
 
-  const handleGenerate = async (e) => {
+  const handleGenerate = (e) => {
     e.preventDefault();
-    await dispatch(generatePlan({ raceType, raceDate, weeks: Number(weeks) }));
+    dispatch(generatePlan({ raceType, raceDate, weeks: Number(weeks) }));
   };
 
   const groupedByWeek = (workouts = []) => {
     const groups = {};
+    if (workouts.length === 0) return groups;
+    const firstDate = new Date(workouts[0].date);
     workouts.forEach((w) => {
-      const weekStart = new Date(w.date);
-      const weekNum = Math.floor((new Date(w.date) - new Date(workouts[0].date)) / (7 * 24 * 60 * 60 * 1000)) + 1;
+      const weekNum = Math.floor((new Date(w.date) - firstDate) / (7 * 24 * 60 * 60 * 1000)) + 1;
       groups[weekNum] = groups[weekNum] || [];
       groups[weekNum].push(w);
     });

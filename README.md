@@ -1,82 +1,59 @@
 # Tri-Athlete
 
-AI-ready personalized triathlon training platform — track swim/bike/run activities, generate periodized training plans, and sync with Strava.
+A personal triathlon training tracker — log swim/bike/run activities, generate a periodized training plan, and see your weekly stats. Runs entirely in the browser (React + Redux), no server or account required. All data is stored locally on your device.
+
+**Live app:** https://jaouadbico.github.io/Tri-Athelete
 
 ## Features
 
-- Track training activities for swimming, biking, and running (manual entry or Strava sync)
-- Auto-generated periodized training plans (base → build → peak → taper) for sprint, olympic, 70.3, and full Ironman distances
+- Log swim/bike/run/brick/strength activities
+- Auto-generated periodized training plans (base → build → peak → taper) for sprint, olympic, 70.3, and full Ironman
 - Weekly training summary dashboard with charts
-- User authentication (JWT) and profile management with FTP / threshold pace tracking
-- Strava OAuth integration for activity import
+- Local athlete profile with FTP / threshold pace
+- Works on desktop and mobile browsers — add it to your phone's home screen for an app-like feel
 
 ## Tech Stack
 
-- **Frontend:** React 18, Redux Toolkit, React Router, Recharts
-- **Backend:** Node.js, Express
-- **Database:** MongoDB (Mongoose)
-- **Auth:** JWT + bcrypt
+- React 18, Redux Toolkit, React Router (HashRouter), Recharts
+- Data persistence: browser `localStorage` (no backend, no database)
+- Deployment: GitHub Actions → GitHub Pages
 
-## Quick Start
+## Run locally
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/jaouadbico/Tri-Athelete.git
-   cd Tri-Athelete
-   ```
+```
+cd client
+npm install
+npm start
+```
+Opens at http://localhost:3000
 
-2. Install dependencies:
-   ```
-   npm run install-all
-   ```
+## Deploy
 
-3. Set up environment variables:
-   ```
-   cp .env.example .env
-   ```
-   Fill in `MONGO_URI`, `JWT_SECRET`, and (optionally) `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET`.
+Every push to `main` automatically builds and deploys to GitHub Pages via the workflow in `.github/workflows/deploy.yml`. First-time setup: in the repo, go to **Settings → Pages → Source** and select **GitHub Actions**.
 
-4. Run the app in development (client + server concurrently):
-   ```
-   npm run dev
-   ```
-   - API: http://localhost:5000
-   - Client: http://localhost:3000
+You can also deploy manually:
+```
+cd client
+npm run deploy
+```
+
+## A note on data
+
+Since there's no backend, your activities and training plan live only in this browser's local storage. They won't sync between your phone and computer, and clearing browser data will erase them. Use "Reset local data" in the sidebar to start fresh.
 
 ## Project Structure
 
 ```
 Tri-Athelete/
-├── client/                # React frontend
+├── .github/workflows/deploy.yml   # Auto-deploy to GitHub Pages
+├── client/
 │   └── src/
-│       ├── components/    # Shared UI (Sidebar, etc.)
-│       ├── pages/         # Dashboard, Activities, TrainingPlan, Profile, Login/Register
-│       ├── redux/         # Redux Toolkit store + slices
-│       └── services/      # Axios API client
-├── server/                 # Node/Express backend
-│   ├── config/             # DB connection
-│   ├── controllers/        # Route handlers
-│   ├── middleware/         # JWT auth middleware
-│   ├── models/              # Mongoose schemas (User, Activity, TrainingPlan)
-│   ├── routes/               # Express routers
-│   └── index.js              # Server entry point
+│       ├── components/            # Sidebar, shared UI
+│       ├── pages/                 # Onboarding, Dashboard, Activities, TrainingPlan, Profile
+│       ├── redux/                 # Redux Toolkit store + slices
+│       └── services/storage.js    # localStorage persistence layer
 └── README.md
 ```
-
-## API Overview
-
-| Method | Route | Description |
-|---|---|---|
-| POST | `/api/auth/register` | Create account |
-| POST | `/api/auth/login` | Log in, get JWT |
-| GET/PUT | `/api/auth/me` | Get/update profile |
-| GET/POST | `/api/activities` | List/create activities |
-| GET | `/api/activities/summary?days=7` | Sport-grouped summary |
-| GET | `/api/plans` | List training plans |
-| POST | `/api/plans/generate` | Generate a periodized plan |
-| PUT | `/api/plans/:planId/workouts/:workoutId` | Mark workout complete |
-| POST | `/api/strava/connect` | Exchange OAuth code |
-| POST | `/api/strava/sync` | Import recent Strava activities |
 
 ## License
 

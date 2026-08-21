@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { fetchSummary, fetchActivities } from '../redux/slices/activitySlice';
+import { loadActivities } from '../redux/slices/activitySlice';
 
 function formatDistance(meters, sport) {
   if (sport === 'swim') return `${Math.round(meters)} m`;
@@ -14,8 +14,7 @@ export default function Dashboard() {
   const { user } = useSelector((s) => s.auth);
 
   useEffect(() => {
-    dispatch(fetchSummary(7));
-    dispatch(fetchActivities());
+    dispatch(loadActivities());
   }, [dispatch]);
 
   const chartData = (summary?.summary || []).map((s) => ({
